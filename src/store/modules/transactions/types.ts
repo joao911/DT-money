@@ -1,6 +1,5 @@
 export interface IState {
   transactions: ITransactionPros[];
-  teste: number;
 }
 
 export interface ITransactionPros {

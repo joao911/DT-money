@@ -8,25 +8,23 @@ import Summary from "../../components/Summary";
 import { Price, Table, TransactionsContainer } from "./styles";
 import SearchForm from "./components/SearchForm";
 import { ITransactionPros } from "../../store/modules/transactions/types";
+import { dateFormatter, priceFormatter } from "../../ultis/fomartter";
 
 const Transactions: React.FC = () => {
-  const [transactions, setTransactions] = useState([] as ITransactionPros[]);
-  const { teste } = useSelector((state: RootState) => state.transactions);
+  const { transactions } = useSelector(
+    (state: RootState) => state.transactions
+  );
   const dispatch = useDispatch<Dispatch>();
   const loadTransaction = async () => {
     const response = await fetch("http://localhost:3000/transactions");
     const data = await response.json();
-    dispatch.transactions.setTeste(teste + 2);
-    setTransactions(data);
+    dispatch.transactions.setTransaction(data);
   };
 
   useEffect(() => {
     loadTransaction();
   }, []);
 
-  useEffect(() => {
-    console.log("teste: ", teste);
-  }, [teste]);
   return (
     <>
       <Header />
@@ -38,21 +36,18 @@ const Transactions: React.FC = () => {
             {map(transactions, (item) => (
               <tr key={item.id}>
                 <td width="50%">{item.description}</td>
-                <td>{item.price}</td>
+                <td>
+                  <Price variant={item.type}>
+                    {item.type === "outcome" ? "- " : ""}
+                    {priceFormatter.format(item.price)}
+                  </Price>
+                </td>
                 <td>{item.category}</td>
-                <td>{item.createdAt}</td>
+                <td>{dateFormatter.format(new Date(item.createdAt))}</td>
               </tr>
             ))}
           </tbody>
         </Table>
-        <button
-          onClick={() => {
-            dispatch.transactions.setTeste(teste + 6);
-            console.log("cai aqui");
-          }}
-        >
-          {teste}
-        </button>
       </TransactionsContainer>
     </>
   );
