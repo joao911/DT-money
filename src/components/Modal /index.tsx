@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import {
   Content,
   Title,
@@ -13,11 +13,9 @@ import {
   Button,
 } from "./styles";
 import { ArrowCircleDown, ArrowCircleUp, X } from "phosphor-react";
+import { priceFormatter } from "../../ultis/fomartter";
 
 const Modal: React.FC = () => {
-  const [isIncome, setIsIncome] = useState("");
-  const [isOutcome, setIsOutcome] = useState("");
-
   const schema = yup
     .object({
       description: yup.string().required("Descrição é obrigatória"),
@@ -28,24 +26,29 @@ const Modal: React.FC = () => {
         .positive("O preço não pode ser negativo")
         .required("Preço é obrigatório"),
       category: yup.string().required("Categoria é obrigatória"),
+      type: yup
+        .string()
+        .oneOf(["income", "outcome"])
+        .required("Tipo da transação é obrigatória"),
     })
     .required();
   type FormData = yup.InferType<typeof schema>;
 
   const {
+    control,
     register,
     handleSubmit,
+    reset,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(schema),
   });
   const onSubmit = (data: FormData) => {
     console.log(data);
+    reset();
   };
 
-  useEffect(() => {
-    console.log("isOutcome: ", isOutcome);
-  }, [isOutcome]);
   return (
     <Dialog.Portal>
       <Overlay />
@@ -71,16 +74,28 @@ const Modal: React.FC = () => {
           />
           <p>{errors.category?.message}</p>
 
-          <TransactionType>
-            <Button value="income" variant="income">
-              <ArrowCircleUp size={24} />
-              Entrada
-            </Button>
-            <Button value="outcome" variant="outcome">
-              <ArrowCircleDown size={24} />
-              Saída
-            </Button>
-          </TransactionType>
+          <Controller
+            control={control}
+            name="type"
+            render={({ field }) => {
+              return (
+                <div>
+                  <TransactionType onValueChange={field.onChange}>
+                    <Button value="income" variant="income">
+                      <ArrowCircleUp size={24} />
+                      Entrada
+                    </Button>
+                    <Button value="outcome" variant="outcome">
+                      <ArrowCircleDown size={24} />
+                      Saída
+                    </Button>
+                  </TransactionType>
+                  <p>{errors.type?.message}</p>
+                </div>
+              );
+            }}
+          />
+
           <ButtonSubmit type="submit">Cadastrar</ButtonSubmit>
         </form>
       </Content>

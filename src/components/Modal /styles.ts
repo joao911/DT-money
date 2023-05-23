@@ -85,6 +85,7 @@ export const TransactionType = styled(RadioGroup.Root)`
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 `;
 
 interface ITransactionTypeButtonProps {

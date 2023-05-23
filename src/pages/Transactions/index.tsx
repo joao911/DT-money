@@ -1,12 +1,30 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { map } from "lodash";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, Dispatch } from "../../store";
+
 import Header from "../../components/Header";
 import Summary from "../../components/Summary";
 import { Price, Table, TransactionsContainer } from "./styles";
 import SearchForm from "./components/SearchForm";
-
-// import { Container } from './styles';
+import { ITransactionPros } from "../../store/modules/transactions/types";
+import { dateFormatter, priceFormatter } from "../../ultis/fomartter";
 
 const Transactions: React.FC = () => {
+  const { transactions } = useSelector(
+    (state: RootState) => state.transactions
+  );
+  const dispatch = useDispatch<Dispatch>();
+  const loadTransaction = async () => {
+    const response = await fetch("http://localhost:3000/transactions");
+    const data = await response.json();
+    dispatch.transactions.setTransaction(data);
+  };
+
+  useEffect(() => {
+    loadTransaction();
+  }, []);
+
   return (
     <>
       <Header />
@@ -15,28 +33,19 @@ const Transactions: React.FC = () => {
         <SearchForm />
         <Table>
           <tbody>
-            <tr>
-              <td width="50%">Desenvolvimento de site</td>
-              <td>
-                <Price variant="income">R$ 1.200,00</Price>
-              </td>
-              <td>Venda</td>
-              <td>21/04/2023</td>
-            </tr>
-            <tr>
-              <td width="50%">Desenvolvimento de site</td>
-              <td>
-                <Price variant="outcome">R$ 1.200,00</Price>
-              </td>
-              <td>Venda</td>
-              <td>21/04/2023</td>
-            </tr>
-            <tr>
-              <td width="50%">Desenvolvimento de site</td>
-              <td>-R$ 1.200,00</td>
-              <td>Venda</td>
-              <td>21/04/2023</td>
-            </tr>
+            {map(transactions, (item) => (
+              <tr key={item.id}>
+                <td width="50%">{item.description}</td>
+                <td>
+                  <Price variant={item.type}>
+                    {item.type === "outcome" ? "- " : ""}
+                    {priceFormatter.format(item.price)}
+                  </Price>
+                </td>
+                <td>{item.category}</td>
+                <td>{dateFormatter.format(new Date(item.createdAt))}</td>
+              </tr>
+            ))}
           </tbody>
         </Table>
       </TransactionsContainer>
