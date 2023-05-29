@@ -2,11 +2,14 @@ import React from "react";
 import { MagnifyingGlass } from "phosphor-react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { useDispatch } from "react-redux";
+import { Dispatch } from "../../../../store";
 import { useForm } from "react-hook-form";
 
 import { Search } from "./styles";
 
 const SearchForm: React.FC = () => {
+  const dispatch = useDispatch<Dispatch>();
   const schema = yup.object({
     query: yup.string().required("Digite o nome da transação"),
   });
@@ -21,8 +24,7 @@ const SearchForm: React.FC = () => {
     resolver: yupResolver(schema),
   });
   const onSubmit = async (data: FormData) => {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    console.log(data);
+    await dispatch.transactions.getAll(data.query);
   };
 
   return (
