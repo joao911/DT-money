@@ -15,14 +15,13 @@ const Transactions: React.FC = () => {
     (state: RootState) => state.transactions
   );
   const dispatch = useDispatch<Dispatch>();
-  const loadTransaction = async () => {
-    const response = await fetch("http://localhost:3000/transactions");
-    const data = await response.json();
-    dispatch.transactions.setTransaction(data);
+
+  const getAllTransaction = async () => {
+    await dispatch.transactions.getAll();
   };
 
   useEffect(() => {
-    loadTransaction();
+    getAllTransaction();
   }, []);
 
   return (

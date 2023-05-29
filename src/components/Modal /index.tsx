@@ -1,8 +1,12 @@
-import React from "react";
-import * as Dialog from "@radix-ui/react-dialog";
+import React, { useRef } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { Controller, useForm } from "react-hook-form";
+import { ArrowCircleDown, ArrowCircleUp, X } from "phosphor-react";
+import { useDispatch } from "react-redux";
+import { Dispatch } from "../../store";
+import CurrencyInputField from "react-currency-input-field";
+
 import {
   Content,
   Title,
@@ -12,10 +16,15 @@ import {
   TransactionType,
   Button,
 } from "./styles";
-import { ArrowCircleDown, ArrowCircleUp, X } from "phosphor-react";
-import { priceFormatter } from "../../ultis/fomartter";
+import { api } from "../../api/axios";
+import { Portal } from "@radix-ui/react-dialog";
 
-const Modal: React.FC = () => {
+interface IModalProps {
+  handleTransactionModalOpenChange: (value: boolean) => void;
+}
+
+const Modal: React.FC<IModalProps> = ({ handleTransactionModalOpenChange }) => {
+  const dispatch = useDispatch<Dispatch>();
   const schema = yup
     .object({
       description: yup.string().required("Descrição é obrigatória"),
@@ -39,18 +48,29 @@ const Modal: React.FC = () => {
     register,
     handleSubmit,
     reset,
-    setValue,
+
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(schema),
   });
-  const onSubmit = (data: FormData) => {
-    console.log(data);
+
+  const onSubmit = async (data: FormData) => {
+    handleTransactionModalOpenChange(false);
+
+    const { description, price, category, type } = data;
+    await api.post("transactions", {
+      description,
+      price,
+      category,
+      type,
+      createdAt: new Date(),
+    });
     reset();
+    await dispatch.transactions.getAll("");
   };
 
   return (
-    <Dialog.Portal>
+    <Portal>
       <Overlay />
 
       <Content>
@@ -65,8 +85,21 @@ const Modal: React.FC = () => {
             placeholder="Descrição"
           />
           <p>{errors.description?.message}</p>
-          <input type="number" {...register("price")} placeholder="Preço" />
+
+          <CurrencyInputField
+            prefix="R$ "
+            suffix=""
+            decimalsLimit={1}
+            decimalSeparator=","
+            groupSeparator="."
+            placeholder="Preço"
+            onValueChange={(value: any) => {
+              register("price").onChange(value);
+            }}
+          />
+
           <p>{errors.price?.message}</p>
+
           <input
             type="text"
             {...register("category")}
@@ -99,7 +132,7 @@ const Modal: React.FC = () => {
           <ButtonSubmit type="submit">Cadastrar</ButtonSubmit>
         </form>
       </Content>
-    </Dialog.Portal>
+    </Portal>
   );
 };
 
