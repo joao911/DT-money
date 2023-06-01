@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { ChangeEvent, useRef } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { Controller, useForm } from "react-hook-form";
@@ -43,6 +43,21 @@ const Modal: React.FC<IModalProps> = ({ handleTransactionModalOpenChange }) => {
     .required();
   type FormData = yup.InferType<typeof schema>;
 
+  function formatCurrency(value: any) {
+    const options = { style: "currency", currency: "BRL" };
+    return new Intl.NumberFormat("pt-BR", options).format(value);
+  }
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const inputValue = event.target.value;
+    const numericValue = parseFloat(inputValue.replace(/\D/g, ""));
+
+    register("price").onChange({
+      target: { value: numericValue },
+      type: "change",
+    });
+  };
+
   const {
     control,
     register,
@@ -86,17 +101,7 @@ const Modal: React.FC<IModalProps> = ({ handleTransactionModalOpenChange }) => {
           />
           <p>{errors.description?.message}</p>
 
-          <CurrencyInputField
-            prefix="R$ "
-            suffix=""
-            decimalsLimit={1}
-            decimalSeparator=","
-            groupSeparator="."
-            placeholder="Preço"
-            onValueChange={(value: any) => {
-              register("price").onChange(value);
-            }}
-          />
+          <input type="number" {...register("price")} placeholder="Preço" />
 
           <p>{errors.price?.message}</p>
 
